@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>2日間研修 日程表エディター</title>
+<title>日程表</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;color:#202124;background:#f5f6f8}
 *{box-sizing:border-box}
@@ -163,6 +163,7 @@ let currentDay = 0;
 
 function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function render(){
+ document.title=data.title||"日程表";
  document.getElementById("title").value=data.title;
  document.getElementById("date").value=data.date;
  document.getElementById("venue").value=data.venue;
@@ -228,6 +229,7 @@ function resetData(){
 }
 function printSchedule(){
  data.title=document.getElementById("title").value;
+ document.title=data.title||"日程表";
  data.date=document.getElementById("date").value;
  data.venue=document.getElementById("venue").value;
  const area=document.getElementById("printArea");
@@ -242,7 +244,10 @@ function printSchedule(){
   </section>`).join("");
  window.print();
 }
-["title","date","venue"].forEach(id=>document.getElementById(id).addEventListener("input",e=>data[{title:"title",date:"date",venue:"venue"}[id]]=e.target.value));
+["title","date","venue"].forEach(id=>document.getElementById(id).addEventListener("input",e=>{
+ data[{title:"title",date:"date",venue:"venue"}[id]]=e.target.value;
+ if(id==="title") document.title=e.target.value||"日程表";
+}));
 render();
 </script>
 </body>
