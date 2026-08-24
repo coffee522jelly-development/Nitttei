@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2日間研修 日程表エディター</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;color:#202124;background:#f5f6f8}
+*{box-sizing:border-box}
+body{margin:0}
+header{background:#1f2937;color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+header h1{font-size:20px;margin:0}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+button{border:0;border-radius:7px;padding:9px 13px;background:#fff;color:#222;cursor:pointer;font-weight:600}
+button:hover{filter:brightness(.95)}
+button.primary{background:#2563eb;color:#fff}
+button.danger{background:#fee2e2;color:#991b1b}
+main{max-width:1200px;margin:24px auto;padding:0 18px}
+.card{background:#fff;border:1px solid #e2e5e9;border-radius:12px;padding:18px;box-shadow:0 2px 8px #00000008}
+.meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px}
+label{display:block;font-size:12px;font-weight:700;color:#667085;margin-bottom:5px}
+input,textarea,select{width:100%;border:1px solid #d0d5dd;border-radius:7px;padding:9px 10px;font:inherit;background:#fff}
+input:focus,textarea:focus,select:focus{outline:2px solid #93c5fd;border-color:#2563eb}
+.tabs{display:flex;gap:8px;margin:18px 0}
+.tab{background:#e5e7eb;color:#374151}
+.tab.active{background:#2563eb;color:#fff}
+.day-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.day-title h2{font-size:18px;margin:0}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid #e5e7eb;padding:8px;vertical-align:top}
+th{font-size:12px;color:#667085;text-align:left;background:#f8fafc}
+.time{width:130px}
+.duration{width:100px}
+.kind{width:150px}
+.actions{width:88px}
+td textarea{min-height:44px;resize:vertical}
+td input{min-width:80px}
+.empty{text-align:center;padding:35px;color:#98a2b3}
+.footer{margin-top:16px;color:#667085;font-size:12px}
+#printArea{display:none}
+@media(max-width:800px){
+ .meta{grid-template-columns:1fr}
+ .time,.duration,.kind{width:auto}
+ table{min-width:850px}
+ .table-wrap{overflow-x:auto}
+ header{align-items:flex-start;flex-direction:column}
+}
+@media screen{
+ .print-only{display:none!important}
+}
+@media print{
+ @page{margin:15mm}
+ html,body{background:#fff!important;margin:0!important;padding:0!important}
+ body > *{display:none!important}
+ main{display:block!important;max-width:none!important;margin:0!important;padding:0!important}
+ #printArea{display:block!important}
+ .screen-editor{display:none!important}
+ .print-day{display:block!important;break-after:page;page-break-after:always}
+ .print-day:last-child{break-after:auto;page-break-after:auto}
+ .print-title{font-size:24px;margin:0 0 5px}
+ .print-date{color:#555;margin-bottom:18px}
+ .print-table{width:100%;border-collapse:collapse}
+ .print-table th,.print-table td{border:1px solid #aaa;padding:8px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>2日間研修 日程表エディター</h1>
+  <div class="toolbar">
+    <button class="primary" onclick="addRow()">＋ 行を追加</button>
+    <button onclick="save()">💾 保存</button>
+    <button onclick="load()">↻ 読み込み</button>
+    <button onclick="printSchedule()">🖨 印刷 / PDF</button>
+    <button onclick="resetData()" class="danger">初期化</button>
+  </div>
+</header>
+
+<main>
+<div class="card screen-editor">
+  <div class="meta">
+    <div><label>研修名</label><input id="title" value="新人研修"></div>
+    <div><label>開催日</label><input id="date" value="2026年○月○日〜○月○日"></div>
+    <div><label>会場</label><input id="venue" value="○○会議室"></div>
+  </div>
+  <div class="editor-only" style="display:flex;align-items:end;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+    <div style="width:180px">
+      <label>日数</label>
+      <select id="dayCount" onchange="changeDayCount(this.value)">
+        <option value="1">1日</option>
+        <option value="2" selected>2日</option>
+        <option value="3">3日</option>
+        <option value="4">4日</option>
+        <option value="5">5日</option>
+        <option value="6">6日</option>
+        <option value="7">7日</option>
+      </select>
+    </div>
+    <div style="font-size:12px;color:#667085;padding-bottom:9px">
+      1〜7日から選択できます。日数を増減しても入力済みの日程はできるだけ保持します。
+    </div>
+  </div>
+
+  <div class="tabs" id="dayTabs"></div>
+
+  <div class="day-title">
+    <h2 id="dayHeading">1日目</h2>
+    <button onclick="addRow()">＋ この日の予定を追加</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="time">時間</th>
+          <th class="duration">所要時間</th>
+          <th>研修内容</th>
+          <th class="kind">担当・講師</th>
+          <th class="actions">操作</th>
+        </tr>
+      </thead>
+      <tbody id="scheduleBody"></tbody>
+    </table>
+  </div>
+  <div class="footer">入力内容はブラウザの localStorage に保存できます。印刷時は2日分を自動的に整形します。</div>
+</div>
+<div id="printArea" class="print-only"></div>
+</main>
+
+<script>
+const initial = {
+ title:"新人研修", date:"2026年○月○日〜○月○日", venue:"○○会議室",
+ days:[
+  [
+   {time:"09:00",duration:"30分",content:"受付・オリエンテーション",lecturer:"人事部"},
+   {time:"09:30",duration:"60分",content:"会社概要・組織説明",lecturer:"○○部長"},
+   {time:"10:30",duration:"10分",content:"休憩",lecturer:""},
+   {time:"10:40",duration:"80分",content:"業務基礎研修",lecturer:"○○主任"},
+   {time:"12:00",duration:"60分",content:"昼休憩",lecturer:""},
+   {time:"13:00",duration:"90分",content:"実務演習",lecturer:"○○主任"},
+   {time:"14:30",duration:"10分",content:"休憩",lecturer:""},
+   {time:"14:40",duration:"80分",content:"グループワーク",lecturer:"○○主任"},
+   {time:"16:00",duration:"30分",content:"振り返り・質疑応答",lecturer:"人事部"},
+   {time:"16:30",duration:"",content:"終了",lecturer:""}
+  ],
+  [
+   {time:"09:00",duration:"60分",content:"前日の振り返り",lecturer:"○○主任"},
+   {time:"10:00",duration:"90分",content:"専門研修",lecturer:"○○課長"},
+   {time:"11:30",duration:"10分",content:"休憩",lecturer:""},
+   {time:"11:40",duration:"80分",content:"ケーススタディ",lecturer:"○○課長"},
+   {time:"13:00",duration:"60分",content:"昼休憩",lecturer:""},
+   {time:"14:00",duration:"90分",content:"実践演習",lecturer:"○○主任"},
+   {time:"15:30",duration:"10分",content:"休憩",lecturer:""},
+   {time:"15:40",duration:"50分",content:"成果発表",lecturer:"参加者"},
+   {time:"16:30",duration:"30分",content:"まとめ・アンケート",lecturer:"人事部"},
+   {time:"17:00",duration:"",content:"終了",lecturer:""}
+  ]
+ ]
+};
+for(let i=2;i<7;i++) initial.days.push([]);
+let data = structuredClone(initial);
+let currentDay = 0;
+
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function render(){
+ document.getElementById("title").value=data.title;
+ document.getElementById("date").value=data.date;
+ document.getElementById("venue").value=data.venue;
+ document.getElementById("dayCount").value=data.days.length;
+ document.getElementById("dayHeading").textContent=(currentDay+1)+"日目";
+ const tabs=document.getElementById("dayTabs");
+ tabs.innerHTML=data.days.map((_,i)=>`<button class="tab ${i===currentDay?"active":""}" data-day="${i}" onclick="switchDay(${i})">${i+1}日目</button>`).join("");
+ const body=document.getElementById("scheduleBody");
+ body.innerHTML="";
+ if(!data.days[currentDay].length){
+   body.innerHTML='<tr><td colspan="5" class="empty">予定がありません。「行を追加」から登録してください。</td></tr>';
+   return;
+ }
+ data.days[currentDay].forEach((r,i)=>{
+  const tr=document.createElement("tr");
+  tr.innerHTML=`
+   <td><input value="${esc(r.time)}" oninput="update(${i},'time',this.value)"></td>
+   <td><input value="${esc(r.duration)}" oninput="update(${i},'duration',this.value)"></td>
+   <td><textarea oninput="update(${i},'content',this.value)">${esc(r.content)}</textarea></td>
+   <td><input value="${esc(r.lecturer)}" oninput="update(${i},'lecturer',this.value)"></td>
+   <td><button class="danger" onclick="deleteRow(${i})">削除</button></td>`;
+  body.appendChild(tr);
+ });
+}
+function update(i,k,v){data.days[currentDay][i][k]=v}
+function changeDayCount(value){
+ const count=Math.max(1,Math.min(7,Number(value)));
+ while(data.days.length<count) data.days.push([]);
+ data.days=data.days.slice(0,count);
+ if(currentDay>=count) currentDay=count-1;
+ render();
+}
+function switchDay(day){currentDay=day;render()}
+function addRow(){
+ data.days[currentDay].push({time:"",duration:"",content:"",lecturer:""});
+ render();
+ const inputs=document.querySelectorAll("#scheduleBody input");
+ inputs[inputs.length-2]?.focus();
+}
+function deleteRow(i){
+ if(confirm("この行を削除しますか？")){data.days[currentDay].splice(i,1);render()}
+}
+function save(){
+ data.title=document.getElementById("title").value;
+ data.date=document.getElementById("date").value;
+ data.venue=document.getElementById("venue").value;
+ localStorage.setItem("training-schedule-2days",JSON.stringify(data));
+ alert("保存しました。");
+}
+function load(){
+ const raw=localStorage.getItem("training-schedule-2days");
+ if(raw){
+   data=JSON.parse(raw);
+   if(!Array.isArray(data.days)) data.days=[[]];
+   data.days=data.days.slice(0,7);
+   render();
+   alert("読み込みました。")
+ }
+ else alert("保存データがありません。");
+}
+function resetData(){
+ if(confirm("入力内容を初期状態に戻しますか？")){data=structuredClone(initial);currentDay=0;render()}
+}
+function printSchedule(){
+ data.title=document.getElementById("title").value;
+ data.date=document.getElementById("date").value;
+ data.venue=document.getElementById("venue").value;
+ const area=document.getElementById("printArea");
+ area.innerHTML=data.days.map((day,di)=>`
+  <section class="print-day">
+   <h1 class="print-title">${esc(data.title)} — ${di+1}日目</h1>
+   <div class="print-date">${esc(data.date)}　／　${esc(data.venue)}</div>
+   <table class="print-table">
+    <thead><tr><th>時間</th><th>所要時間</th><th>研修内容</th><th>担当・講師</th></tr></thead>
+    <tbody>${day.map(r=>`<tr><td>${esc(r.time)}</td><td>${esc(r.duration)}</td><td>${esc(r.content)}</td><td>${esc(r.lecturer)}</td></tr>`).join("")}</tbody>
+   </table>
+  </section>`).join("");
+ window.print();
+}
+["title","date","venue"].forEach(id=>document.getElementById(id).addEventListener("input",e=>data[{title:"title",date:"date",venue:"venue"}[id]]=e.target.value));
+render();
+</script>
+</body>
+</html>
