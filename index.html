@@ -5,249 +5,661 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>日程表</title>
 <style>
-:root{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;color:#202124;background:#f5f6f8}
-*{box-sizing:border-box}
-body{margin:0}
-header{background:#1f2937;color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-header h1{font-size:20px;margin:0}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap}
-button{border:0;border-radius:7px;padding:9px 13px;background:#fff;color:#222;cursor:pointer;font-weight:600}
-button:hover{filter:brightness(.95)}
-button.primary{background:#2563eb;color:#fff}
-button.danger{background:#fee2e2;color:#991b1b}
-main{max-width:1200px;margin:24px auto;padding:0 18px}
-.card{background:#fff;border:1px solid #e2e5e9;border-radius:12px;padding:18px;box-shadow:0 2px 8px #00000008}
-.meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px}
-label{display:block;font-size:12px;font-weight:700;color:#667085;margin-bottom:5px}
-input,textarea,select{width:100%;border:1px solid #d0d5dd;border-radius:7px;padding:9px 10px;font:inherit;background:#fff}
-input:focus,textarea:focus,select:focus{outline:2px solid #93c5fd;border-color:#2563eb}
-.tabs{display:flex;gap:8px;margin:18px 0}
-.tab{background:#e5e7eb;color:#374151}
-.tab.active{background:#2563eb;color:#fff}
-.day-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.day-title h2{font-size:18px;margin:0}
-table{width:100%;border-collapse:collapse}
-th,td{border-bottom:1px solid #e5e7eb;padding:8px;vertical-align:top}
-th{font-size:12px;color:#667085;text-align:left;background:#f8fafc}
-.time{width:130px}
-.duration{width:100px}
-.kind{width:150px}
-.actions{width:88px}
-td textarea{min-height:44px;resize:vertical}
-td input{min-width:80px}
-.empty{text-align:center;padding:35px;color:#98a2b3}
-.footer{margin-top:16px;color:#667085;font-size:12px}
-#printArea{display:none}
-@media(max-width:800px){
- .meta{grid-template-columns:1fr}
- .time,.duration,.kind{width:auto}
- table{min-width:850px}
- .table-wrap{overflow-x:auto}
- header{align-items:flex-start;flex-direction:column}
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans JP", Arial, sans-serif;
+  --bg-main: #ffffff;
+  --bg-sidebar: #f7f6f3;
+  --text-main: #37352f;
+  --text-muted: #787774;
+  --border-color: #e9e9e7;
+  --hover-bg: #efefed;
+  --active-bg: #e3e2e0;
+  --accent-color: #2eaadc;
+  --tag-bg: #f1f1ef;
 }
-@media screen{
- .print-only{display:none!important}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--text-main);
+  background: var(--bg-main);
+  line-height: 1.5;
 }
-@media print{
- @page{margin:15mm}
- html,body{background:#fff!important;margin:0!important;padding:0!important}
- body > *{display:none!important}
- main{display:block!important;max-width:none!important;margin:0!important;padding:0!important}
- #printArea{display:block!important}
- .screen-editor{display:none!important}
- .print-day{display:block!important;break-after:page;page-break-after:always}
- .print-day:last-child{break-after:auto;page-break-after:auto}
- .print-title{font-size:24px;margin:0 0 5px}
- .print-date{color:#555;margin-bottom:18px}
- .print-table{width:100%;border-collapse:collapse}
- .print-table th,.print-table td{border:1px solid #aaa;padding:8px}
+
+/* Notion Navigation Bar */
+.notion-topbar {
+  height: 45px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 14px;
+  color: var(--text-muted);
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.notion-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+.notion-breadcrumb span { color: var(--text-muted); }
+.notion-actions { display: flex; gap: 6px; }
+.notion-btn {
+  border: 1px solid var(--border-color);
+  background: #fff;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  transition: background 0.15s ease;
+}
+.notion-btn:hover { background: var(--hover-bg); }
+.notion-btn.primary {
+  background: #2383e2;
+  color: #fff;
+  border-color: #2383e2;
+}
+.notion-btn.primary:hover { background: #1d70c4; }
+.notion-btn.danger { color: #eb5757; }
+.notion-btn.danger:hover { background: #fdf2f2; }
+
+/* Notion Page Layout */
+.notion-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 48px 100px;
+}
+.notion-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  display: inline-block;
+  user-select: none;
+}
+.notion-title-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 24px;
+  background: transparent;
+  font-family: inherit;
+}
+.notion-title-input::placeholder { color: #c3c2c0; }
+
+/* Properties Section */
+.notion-properties {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+.notion-property-row {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  min-height: 32px;
+}
+.notion-property-label {
+  width: 130px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+}
+.notion-property-value {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notion-input {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-main);
+  width: 100%;
+  max-width: 320px;
+  background: transparent;
+  transition: all 0.15s ease;
+}
+.notion-input:hover { background: var(--hover-bg); }
+.notion-input:focus {
+  background: #fff;
+  border-color: var(--border-color);
+  box-shadow: inset 0 0 0 1px var(--border-color);
+  outline: none;
+}
+.notion-select {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-main);
+  background: transparent;
+  cursor: pointer;
+}
+.notion-select:hover { background: var(--hover-bg); }
+
+/* Quick Tools / Presets Bar */
+.quick-tools {
+  background: var(--bg-sidebar);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.quick-tools-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.chip:hover {
+  background: var(--active-bg);
+  border-color: #d3d2d0;
+}
+
+/* Tabs */
+.notion-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 16px;
+}
+.notion-tab {
+  padding: 6px 14px;
+  font-size: 14px;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.notion-tab:hover { color: var(--text-main); }
+.notion-tab.active {
+  color: var(--text-main);
+  border-bottom-color: var(--text-main);
+}
+
+/* Table View */
+.notion-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+.notion-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.notion-table th {
+  text-align: left;
+  padding: 8px 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-color);
+  background: #fafafa;
+}
+.notion-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+.notion-cell-input, .notion-cell-textarea {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 5px 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-main);
+  background: transparent;
+  resize: vertical;
+}
+.notion-cell-input:hover, .notion-cell-textarea:hover {
+  background: var(--hover-bg);
+}
+.notion-cell-input:focus, .notion-cell-textarea:focus {
+  background: #fff;
+  border-color: #2383e2;
+  box-shadow: 0 0 0 2px rgba(35,131,226,0.2);
+  outline: none;
+}
+.notion-row-del {
+  opacity: 0.3;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 3px;
+  color: var(--text-muted);
+}
+.notion-table tr:hover .notion-row-del { opacity: 1; }
+.notion-row-del:hover { background: #fee2e2; color: #eb5757; }
+
+.add-row-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  width: 100%;
+  transition: background 0.15s ease;
+}
+.add-row-btn:hover { background: var(--hover-bg); color: var(--text-main); }
+
+#printArea { display: none; }
+
+/* Print Styles */
+@media screen {
+  .print-only { display: none !important; }
+}
+@media print {
+  @page { margin: 15mm; }
+  html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+  body > * { display: none !important; }
+  main { display: block !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
+  #printArea { display: block !important; }
+  .screen-editor { display: none !important; }
+  .print-day { display: block !important; break-after: page; page-break-after: always; }
+  .print-day:last-child { break-after: auto; page-break-after: auto; }
+  .print-title { font-size: 24px; margin: 0 0 5px; }
+  .print-date { color: #555; margin-bottom: 18px; }
+  .print-table { width: 100%; border-collapse: collapse; }
+  .print-table th, .print-table td { border: 1px solid #aaa; padding: 8px; }
 }
 </style>
 </head>
 <body>
-<header>
-  <h1>2日間研修 日程表エディター</h1>
-  <div class="toolbar">
-    <button class="primary" onclick="addRow()">＋ 行を追加</button>
-    <button onclick="save()">💾 保存</button>
-    <button onclick="load()">↻ 読み込み</button>
-    <button onclick="printSchedule()">🖨 印刷 / PDF</button>
-    <button onclick="resetData()" class="danger">初期化</button>
+
+<div class="notion-topbar screen-editor">
+  <div class="notion-breadcrumb">
+    <span>📅</span> <span id="navTitle">日程表</span>
   </div>
-</header>
+  <div class="notion-actions">
+    <button class="notion-btn" onclick="save()">💾 保存</button>
+    <button class="notion-btn" onclick="load()">↻ 読み込み</button>
+    <button class="notion-btn primary" onclick="printSchedule()">🖨 印刷 / PDF</button>
+    <button class="notion-btn danger" onclick="resetData()">初期化</button>
+  </div>
+</div>
 
 <main>
-<div class="card screen-editor">
-  <div class="meta">
-    <div><label>研修名</label><input id="title" value="新人研修"></div>
-    <div><label>開催日</label><input id="date" value="2026年○月○日〜○月○日"></div>
-    <div><label>会場</label><input id="venue" value="○○会議室"></div>
-  </div>
-  <div class="editor-only" style="display:flex;align-items:end;gap:10px;margin-bottom:18px;flex-wrap:wrap">
-    <div style="width:180px">
-      <label>日数</label>
-      <select id="dayCount" onchange="changeDayCount(this.value)">
-        <option value="1">1日</option>
-        <option value="2" selected>2日</option>
-        <option value="3">3日</option>
-        <option value="4">4日</option>
-        <option value="5">5日</option>
-        <option value="6">6日</option>
-        <option value="7">7日</option>
-      </select>
+<div class="notion-page screen-editor">
+  <div class="notion-icon">📋</div>
+  <input class="notion-title-input" id="title" value="新人研修" placeholder="無題の日程表">
+
+  <div class="notion-properties">
+    <div class="notion-property-row">
+      <div class="notion-property-label">📅 開催日</div>
+      <div class="notion-property-value">
+        <input class="notion-input" id="date" value="2026年○月○日〜○月○日">
+      </div>
     </div>
-    <div style="font-size:12px;color:#667085;padding-bottom:9px">
-      1〜7日から選択できます。日数を増減しても入力済みの日程はできるだけ保持します。
+    <div class="notion-property-row">
+      <div class="notion-property-label">📍 会場</div>
+      <div class="notion-property-value">
+        <input class="notion-input" id="venue" value="○○会議室">
+      </div>
+    </div>
+    <div class="notion-property-row">
+      <div class="notion-property-label">📆 研修日数</div>
+      <div class="notion-property-value">
+        <select class="notion-select" id="dayCount" onchange="changeDayCount(this.value)">
+          <option value="1">1日</option>
+          <option value="2" selected>2日</option>
+          <option value="3">3日</option>
+          <option value="4">4日</option>
+          <option value="5">5日</option>
+          <option value="6">6日</option>
+          <option value="7">7日</option>
+        </select>
+      </div>
+    </div>
+    <div class="notion-property-row">
+      <div class="notion-property-label">⚡️ プリセット</div>
+      <div class="notion-property-value">
+        <select class="notion-select" id="templateSelect" onchange="applyTemplate(this.value)">
+          <option value="">-- テンプレートを選択 --</option>
+          <option value="freshman">新人研修 (2日間)</option>
+          <option value="executive">幹部研修 (1日)</option>
+          <option value="tech">IT技術研修 (3日間)</option>
+        </select>
+      </div>
     </div>
   </div>
 
-  <div class="tabs" id="dayTabs"></div>
-
-  <div class="day-title">
-    <h2 id="dayHeading">1日目</h2>
-    <button onclick="addRow()">＋ この日の予定を追加</button>
+  <div class="quick-tools">
+    <div class="quick-tools-title">⚡️ ワンクリック行追加 (入力の手間を削減)</div>
+    <div class="quick-chips">
+      <div class="chip" onclick="quickAdd('受付・オリエンテーション', '30分', '人事部')">＋ 受付 (30分)</div>
+      <div class="chip" onclick="quickAdd('講義・研修', '60分', '講師')">＋ 講義 (60分)</div>
+      <div class="chip" onclick="quickAdd('休憩', '10分', '')">＋ 休憩 (10分)</div>
+      <div class="chip" onclick="quickAdd('昼休憩', '60分', '')">＋ 昼休憩 (60分)</div>
+      <div class="chip" onclick="quickAdd('演習・ワーク', '90分', '講師')">＋ 演習 (90分)</div>
+      <div class="chip" onclick="quickAdd('振り返り・質疑応答', '30分', '進行役')">＋ 振り返り (30分)</div>
+      <div class="chip" onclick="quickAdd('終了', '', '')">＋ 終了</div>
+    </div>
   </div>
 
-  <div class="table-wrap">
-    <table>
+  <div class="notion-tabs" id="dayTabs"></div>
+
+  <div class="notion-table-wrap">
+    <table class="notion-table">
       <thead>
         <tr>
-          <th class="time">時間</th>
-          <th class="duration">所要時間</th>
+          <th style="width: 120px;">時間</th>
+          <th style="width: 110px;">所要時間</th>
           <th>研修内容</th>
-          <th class="kind">担当・講師</th>
-          <th class="actions">操作</th>
+          <th style="width: 160px;">担当・講師</th>
+          <th style="width: 40px;"></th>
         </tr>
       </thead>
       <tbody id="scheduleBody"></tbody>
     </table>
   </div>
-  <div class="footer">入力内容はブラウザの localStorage に保存できます。印刷時は2日分を自動的に整形します。</div>
+  <button class="add-row-btn" onclick="addRow()">＋ 新規行を追加</button>
 </div>
+
 <div id="printArea" class="print-only"></div>
 </main>
 
 <script>
-const initial = {
- title:"新人研修", date:"2026年○月○日〜○月○日", venue:"○○会議室",
- days:[
-  [
-   {time:"09:00",duration:"30分",content:"受付・オリエンテーション",lecturer:"人事部"},
-   {time:"09:30",duration:"60分",content:"会社概要・組織説明",lecturer:"○○部長"},
-   {time:"10:30",duration:"10分",content:"休憩",lecturer:""},
-   {time:"10:40",duration:"80分",content:"業務基礎研修",lecturer:"○○主任"},
-   {time:"12:00",duration:"60分",content:"昼休憩",lecturer:""},
-   {time:"13:00",duration:"90分",content:"実務演習",lecturer:"○○主任"},
-   {time:"14:30",duration:"10分",content:"休憩",lecturer:""},
-   {time:"14:40",duration:"80分",content:"グループワーク",lecturer:"○○主任"},
-   {time:"16:00",duration:"30分",content:"振り返り・質疑応答",lecturer:"人事部"},
-   {time:"16:30",duration:"",content:"終了",lecturer:""}
-  ],
-  [
-   {time:"09:00",duration:"60分",content:"前日の振り返り",lecturer:"○○主任"},
-   {time:"10:00",duration:"90分",content:"専門研修",lecturer:"○○課長"},
-   {time:"11:30",duration:"10分",content:"休憩",lecturer:""},
-   {time:"11:40",duration:"80分",content:"ケーススタディ",lecturer:"○○課長"},
-   {time:"13:00",duration:"60分",content:"昼休憩",lecturer:""},
-   {time:"14:00",duration:"90分",content:"実践演習",lecturer:"○○主任"},
-   {time:"15:30",duration:"10分",content:"休憩",lecturer:""},
-   {time:"15:40",duration:"50分",content:"成果発表",lecturer:"参加者"},
-   {time:"16:30",duration:"30分",content:"まとめ・アンケート",lecturer:"人事部"},
-   {time:"17:00",duration:"",content:"終了",lecturer:""}
+const templates = {
+ freshman: {
+  title: "新人研修", date: "2026年4月1日〜4月2日", venue: "第1会議室",
+  days: [
+   [
+    {time:"09:00",duration:"30分",content:"受付・オリエンテーション",lecturer:"人事部"},
+    {time:"09:30",duration:"60分",content:"会社概要・組織説明",lecturer:"○○部長"},
+    {time:"10:30",duration:"10分",content:"休憩",lecturer:""},
+    {time:"10:40",duration:"80分",content:"業務基礎研修",lecturer:"○○主任"},
+    {time:"12:00",duration:"60分",content:"昼休憩",lecturer:""},
+    {time:"13:00",duration:"90分",content:"実務演習",lecturer:"○○主任"},
+    {time:"14:30",duration:"10分",content:"休憩",lecturer:""},
+    {time:"14:40",duration:"80分",content:"グループワーク",lecturer:"○○主任"},
+    {time:"16:00",duration:"30分",content:"振り返り・質疑応答",lecturer:"人事部"},
+    {time:"16:30",duration:"",content:"終了",lecturer:""}
+   ],
+   [
+    {time:"09:00",duration:"60分",content:"前日の振り返り",lecturer:"○○主任"},
+    {time:"10:00",duration:"90分",content:"専門研修",lecturer:"○○課長"},
+    {time:"11:30",duration:"10分",content:"休憩",lecturer:""},
+    {time:"11:40",duration:"80分",content:"ケーススタディ",lecturer:"○○課長"},
+    {time:"13:00",duration:"60分",content:"昼休憩",lecturer:""},
+    {time:"14:00",duration:"90分",content:"実践演習",lecturer:"○○主任"},
+    {time:"15:30",duration:"10分",content:"休憩",lecturer:""},
+    {time:"15:40",duration:"50分",content:"成果発表",lecturer:"参加者"},
+    {time:"16:30",duration:"30分",content:"まとめ・アンケート",lecturer:"人事部"},
+    {time:"17:00",duration:"",content:"終了",lecturer:""}
+   ]
   ]
- ]
+ },
+ executive: {
+  title: "幹部研修", date: "2026年5月15日", venue: "特別応接室",
+  days: [
+   [
+    {time:"10:00",duration:"30分",content:"開会・経営方針説明",lecturer:"社長"},
+    {time:"10:30",duration:"90分",content:"次期経営戦略ディスカッション",lecturer:"外部コンサルタント"},
+    {time:"12:00",duration:"60分",content:"昼食・情報交換",lecturer:""},
+    {time:"13:00",duration:"120分",content:"グループセッション",lecturer:"各部門長"},
+    {time:"15:00",duration:"15分",content:"休憩",lecturer:""},
+    {time:"15:15",duration:"90分",content:"発表・総括",lecturer:"役員会"},
+    {time:"16:45",duration:"15分",content:"閉会式",lecturer:"人事部長"}
+   ]
+  ]
+ },
+ tech: {
+  title: "IT技術研修", date: "2026年6月10日〜6月12日", venue: "セミナールームA",
+  days: [
+   [
+    {time:"09:30",duration:"30分",content:"ガイダンス・環境構築",lecturer:"リードエンジニア"},
+    {time:"10:00",duration:"120分",content:"基礎構文・アーキテクチャ講義",lecturer:"外部講師"},
+    {time:"12:00",duration:"60分",content:"昼休憩",lecturer:""},
+    {time:"13:00",duration:"180分",content:"ハンズオン開発 Day1",lecturer:"TAチーム"},
+    {time:"16:00",duration:"30分",content:"Day1 質疑応答",lecturer:"リードエンジニア"}
+   ],
+   [
+    {time:"09:30",duration:"150分",content:"応用設計・API連携",lecturer:"外部講師"},
+    {time:"12:00",duration:"60分",content:"昼休憩",lecturer:""},
+    {time:"13:00",duration:"180分",content:"チーム開発演習",lecturer:"TAチーム"},
+    {time:"16:00",duration:"30分",content:"コードレビュー",lecturer:"リードエンジニア"}
+   ],
+   [
+    {time:"09:30",duration:"150分",content:"最終プロダクト制作",lecturer:"TAチーム"},
+    {time:"12:00",duration:"60分",content:"昼休憩",lecturer:""},
+    {time:"13:00",duration:"120分",content:"成果物発表・デモ展示",lecturer:"参加チーム"},
+    {time:"15:00",duration:"30分",content:"表彰・総括",lecturer:"CTO"}
+   ]
+  ]
+ }
 };
-for(let i=2;i<7;i++) initial.days.push([]);
+
+const initial = structuredClone(templates.freshman);
+for(let i=initial.days.length; i<7; i++) initial.days.push([]);
+
 let data = structuredClone(initial);
 let currentDay = 0;
 
 function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+
+function calculateNextTime() {
+  const currentRows = data.days[currentDay];
+  if (!currentRows || currentRows.length === 0) return "09:00";
+  const lastRow = currentRows[currentRows.length - 1];
+  if (!lastRow.time) return "09:00";
+
+  const [h, m] = lastRow.time.split(":").map(Number);
+  if (isNaN(h) || isNaN(m)) return lastRow.time;
+
+  let durMinutes = 0;
+  if (lastRow.duration) {
+    const match = lastRow.duration.match(/(\d+)/);
+    if (match) durMinutes = parseInt(match[1], 10);
+  }
+
+  const totalMinutes = h * 60 + m + durMinutes;
+  const nextH = Math.floor(totalMinutes / 60) % 24;
+  const nextM = totalMinutes % 60;
+  return `${String(nextH).padStart(2, '0')}:${String(nextM).padStart(2, '0')}`;
+}
+
 function render(){
- document.title=data.title||"日程表";
- document.getElementById("title").value=data.title;
- document.getElementById("date").value=data.date;
- document.getElementById("venue").value=data.venue;
- document.getElementById("dayCount").value=data.days.length;
- document.getElementById("dayHeading").textContent=(currentDay+1)+"日目";
- const tabs=document.getElementById("dayTabs");
- tabs.innerHTML=data.days.map((_,i)=>`<button class="tab ${i===currentDay?"active":""}" data-day="${i}" onclick="switchDay(${i})">${i+1}日目</button>`).join("");
- const body=document.getElementById("scheduleBody");
- body.innerHTML="";
- if(!data.days[currentDay].length){
-   body.innerHTML='<tr><td colspan="5" class="empty">予定がありません。「行を追加」から登録してください。</td></tr>';
+ const pageTitle = data.title || "日程表";
+ document.title = pageTitle;
+ document.getElementById("navTitle").textContent = pageTitle;
+ document.getElementById("title").value = data.title;
+ document.getElementById("date").value = data.date;
+ document.getElementById("venue").value = data.venue;
+ document.getElementById("dayCount").value = data.days.length;
+
+ const tabs = document.getElementById("dayTabs");
+ tabs.innerHTML = data.days.map((_,i) => `<button class="notion-tab ${i===currentDay ? "active" : ""}" onclick="switchDay(${i})">${i+1}日目</button>`).join("");
+
+ const body = document.getElementById("scheduleBody");
+ body.innerHTML = "";
+ if(!data.days[currentDay] || !data.days[currentDay].length){
+   body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">予定が登録されていません。「＋ 新規行を追加」またはワンクリックタグから登録できます。</td></tr>';
    return;
  }
- data.days[currentDay].forEach((r,i)=>{
-  const tr=document.createElement("tr");
-  tr.innerHTML=`
-   <td><input value="${esc(r.time)}" oninput="update(${i},'time',this.value)"></td>
-   <td><input value="${esc(r.duration)}" oninput="update(${i},'duration',this.value)"></td>
-   <td><textarea oninput="update(${i},'content',this.value)">${esc(r.content)}</textarea></td>
-   <td><input value="${esc(r.lecturer)}" oninput="update(${i},'lecturer',this.value)"></td>
-   <td><button class="danger" onclick="deleteRow(${i})">削除</button></td>`;
+
+ const durations = ["", "10分", "15分", "30分", "45分", "60分", "80分", "90分", "120分"];
+
+ data.days[currentDay].forEach((r,i) => {
+  const tr = document.createElement("tr");
+  const durOptions = durations.map(d => `<option value="${d}" ${r.duration===d?"selected":""}>${d||"指定なし"}</option>`).join("");
+  tr.innerHTML = `
+   <td><input class="notion-cell-input" value="${esc(r.time)}" placeholder="09:00" oninput="update(${i},'time',this.value)"></td>
+   <td>
+     <input class="notion-cell-input" list="durList_${i}" value="${esc(r.duration)}" placeholder="30分" onchange="update(${i},'duration',this.value)" oninput="update(${i},'duration',this.value)">
+     <datalist id="durList_${i}">
+       ${durations.map(d => `<option value="${d}">`).join("")}
+     </datalist>
+   </td>
+   <td><input class="notion-cell-input" value="${esc(r.content)}" placeholder="内容を入力" oninput="update(${i},'content',this.value)"></td>
+   <td><input class="notion-cell-input" value="${esc(r.lecturer)}" placeholder="担当者" oninput="update(${i},'lecturer',this.value)"></td>
+   <td style="text-align:center"><button class="notion-row-del" onclick="deleteRow(${i})" title="削除">✕</button></td>`;
   body.appendChild(tr);
  });
 }
-function update(i,k,v){data.days[currentDay][i][k]=v}
+
+function update(i,k,v){
+ if(!data.days[currentDay][i]) return;
+ data.days[currentDay][i][k]=v;
+}
+
 function changeDayCount(value){
- const count=Math.max(1,Math.min(7,Number(value)));
- while(data.days.length<count) data.days.push([]);
- data.days=data.days.slice(0,count);
- if(currentDay>=count) currentDay=count-1;
+ const count = Math.max(1, Math.min(7, Number(value)));
+ while(data.days.length < count) data.days.push([]);
+ data.days = data.days.slice(0, count);
+ if(currentDay >= count) currentDay = count - 1;
  render();
 }
-function switchDay(day){currentDay=day;render()}
-function addRow(){
- data.days[currentDay].push({time:"",duration:"",content:"",lecturer:""});
+
+function switchDay(day){ currentDay = day; render(); }
+
+function addRow(preset = {}) {
+ const nextTime = calculateNextTime();
+ const newRow = {
+   time: preset.time !== undefined ? preset.time : nextTime,
+   duration: preset.duration || "",
+   content: preset.content || "",
+   lecturer: preset.lecturer || ""
+ };
+ if (!data.days[currentDay]) data.days[currentDay] = [];
+ data.days[currentDay].push(newRow);
  render();
- const inputs=document.querySelectorAll("#scheduleBody input");
- inputs[inputs.length-2]?.focus();
 }
+
+function quickAdd(content, duration, lecturer) {
+ const nextTime = calculateNextTime();
+ addRow({ time: nextTime, duration, content, lecturer });
+}
+
 function deleteRow(i){
- if(confirm("この行を削除しますか？")){data.days[currentDay].splice(i,1);render()}
+ data.days[currentDay].splice(i,1);
+ render();
 }
+
+function applyTemplate(key) {
+ if (!key || !templates[key]) return;
+ if (confirm("現在の内容を置き換えてテンプレートを読み込みますか？")) {
+   data = structuredClone(templates[key]);
+   for(let i=data.days.length; i<7; i++) data.days.push([]);
+   currentDay = 0;
+   render();
+ }
+ document.getElementById("templateSelect").value = "";
+}
+
 function save(){
- data.title=document.getElementById("title").value;
- data.date=document.getElementById("date").value;
- data.venue=document.getElementById("venue").value;
- localStorage.setItem("training-schedule-2days",JSON.stringify(data));
+ data.title = document.getElementById("title").value;
+ data.date = document.getElementById("date").value;
+ data.venue = document.getElementById("venue").value;
+ localStorage.setItem("training-schedule-2days", JSON.stringify(data));
  alert("保存しました。");
 }
+
 function load(){
- const raw=localStorage.getItem("training-schedule-2days");
+ const raw = localStorage.getItem("training-schedule-2days");
  if(raw){
-   data=JSON.parse(raw);
-   if(!Array.isArray(data.days)) data.days=[[]];
-   data.days=data.days.slice(0,7);
+   data = JSON.parse(raw);
+   if(!Array.isArray(data.days)) data.days = [[]];
+   data.days = data.days.slice(0,7);
    render();
-   alert("読み込みました。")
+   alert("読み込みました。");
+ } else {
+   alert("保存データがありません。");
  }
- else alert("保存データがありません。");
 }
+
 function resetData(){
- if(confirm("入力内容を初期状態に戻しますか？")){data=structuredClone(initial);currentDay=0;render()}
+ if(confirm("入力内容を初期状態に戻しますか？")){
+   data = structuredClone(initial);
+   currentDay = 0;
+   render();
+ }
 }
+
 function printSchedule(){
- data.title=document.getElementById("title").value;
- document.title=data.title||"日程表";
- data.date=document.getElementById("date").value;
- data.venue=document.getElementById("venue").value;
- const area=document.getElementById("printArea");
- area.innerHTML=data.days.map((day,di)=>`
+ data.title = document.getElementById("title").value;
+ data.date = document.getElementById("date").value;
+ data.venue = document.getElementById("venue").value;
+ document.title = data.title || "日程表";
+
+ const area = document.getElementById("printArea");
+ area.innerHTML = data.days.map((day, di) => `
   <section class="print-day">
    <h1 class="print-title">${esc(data.title)} — ${di+1}日目</h1>
    <div class="print-date">${esc(data.date)}　／　${esc(data.venue)}</div>
    <table class="print-table">
     <thead><tr><th>時間</th><th>所要時間</th><th>研修内容</th><th>担当・講師</th></tr></thead>
-    <tbody>${day.map(r=>`<tr><td>${esc(r.time)}</td><td>${esc(r.duration)}</td><td>${esc(r.content)}</td><td>${esc(r.lecturer)}</td></tr>`).join("")}</tbody>
+    <tbody>${day.map(r => `<tr><td>${esc(r.time)}</td><td>${esc(r.duration)}</td><td>${esc(r.content)}</td><td>${esc(r.lecturer)}</td></tr>`).join("")}</tbody>
    </table>
   </section>`).join("");
  window.print();
 }
-["title","date","venue"].forEach(id=>document.getElementById(id).addEventListener("input",e=>{
- data[{title:"title",date:"date",venue:"venue"}[id]]=e.target.value;
- if(id==="title") document.title=e.target.value||"日程表";
-}));
+
+["title", "date", "venue"].forEach(id => {
+  document.getElementById(id).addEventListener("input", e => {
+    data[{title:"title", date:"date", venue:"venue"}[id]] = e.target.value;
+    if(id === "title") {
+      const val = e.target.value || "日程表";
+      document.title = val;
+      document.getElementById("navTitle").textContent = val;
+    }
+  });
+});
+
 render();
 </script>
 </body>
