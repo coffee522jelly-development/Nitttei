@@ -402,7 +402,10 @@ function render(){
    </td>
    <td>
      <div class="duration-cell">
-       <input value="${esc(r.duration)}" placeholder="30分" style="width:70px;" onchange="updateRow(${i},'duration',this.value)">
+       <input list="durationOptions" value="${esc(r.duration)}" placeholder="30分" style="width:90px;" onchange="updateRow(${i},'duration',this.value)" oninput="updateRow(${i},'duration',this.value)">
+       <datalist id="durationOptions">
+         ${Array.from({length: 24}, (_, index) => (index + 1) * 5).map(m => `<option value="${m}分">`).join("")}
+       </datalist>
        <div class="dur-btn-group">
          <button class="sm" onclick="addDuration(${i}, 10)">+10m</button>
          <button class="sm" onclick="addDuration(${i}, 30)">+30m</button>
