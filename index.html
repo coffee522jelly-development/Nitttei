@@ -3,90 +3,222 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>2日間研修 日程表エディター</title>
+<title>日程表</title>
 <style>
-:root{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;color:#202124;background:#f5f6f8}
-*{box-sizing:border-box}
-body{margin:0}
-header{background:#1f2937;color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-header h1{font-size:20px;margin:0}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap}
-button{border:0;border-radius:7px;padding:9px 13px;background:#fff;color:#222;cursor:pointer;font-weight:600}
-button:hover{filter:brightness(.95)}
-button.primary{background:#2563eb;color:#fff}
-button.danger{background:#fee2e2;color:#991b1b}
-main{max-width:1200px;margin:24px auto;padding:0 18px}
-.card{background:#fff;border:1px solid #e2e5e9;border-radius:12px;padding:18px;box-shadow:0 2px 8px #00000008}
-.meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px}
-label{display:block;font-size:12px;font-weight:700;color:#667085;margin-bottom:5px}
-input,textarea,select{width:100%;border:1px solid #d0d5dd;border-radius:7px;padding:9px 10px;font:inherit;background:#fff}
-input:focus,textarea:focus,select:focus{outline:2px solid #93c5fd;border-color:#2563eb}
-.tabs{display:flex;gap:8px;margin:18px 0}
-.tab{background:#e5e7eb;color:#374151}
-.tab.active{background:#2563eb;color:#fff}
-.day-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.day-title h2{font-size:18px;margin:0}
-table{width:100%;border-collapse:collapse}
-th,td{border-bottom:1px solid #e5e7eb;padding:8px;vertical-align:top}
-th{font-size:12px;color:#667085;text-align:left;background:#f8fafc}
-.time{width:130px}
-.duration{width:100px}
-.kind{width:150px}
-.actions{width:88px}
-td textarea{min-height:44px;resize:vertical}
-td input{min-width:80px}
-.empty{text-align:center;padding:35px;color:#98a2b3}
-.footer{margin-top:16px;color:#667085;font-size:12px}
-#printArea{display:none}
-@media(max-width:800px){
- .meta{grid-template-columns:1fr}
- .time,.duration,.kind{width:auto}
- table{min-width:850px}
- .table-wrap{overflow-x:auto}
- header{align-items:flex-start;flex-direction:column}
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-body: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --accent-light: #eff6ff;
+  --radius: 8px;
 }
-@media screen{
- .print-only{display:none!important}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans JP", sans-serif;
+  color: var(--text-main);
+  background: var(--bg-body);
+  line-height: 1.5;
 }
-@media print{
- @page{margin:15mm}
- html,body{background:#fff!important;margin:0!important;padding:0!important}
- body > *{display:none!important}
- main{display:block!important;max-width:none!important;margin:0!important;padding:0!important}
- #printArea{display:block!important}
- .screen-editor{display:none!important}
- .print-day{display:block!important;break-after:page;page-break-after:always}
- .print-day:last-child{break-after:auto;page-break-after:auto}
- .print-title{font-size:24px;margin:0 0 5px}
- .print-date{color:#555;margin-bottom:18px}
- .print-table{width:100%;border-collapse:collapse}
- .print-table th,.print-table td{border:1px solid #aaa;padding:8px}
+
+header {
+  background: #1e293b;
+  color: #fff;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+header h1 { font-size: 18px; margin: 0; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+
+button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  background: #fff;
+  color: var(--text-main);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+button:hover { background: #f1f5f9; }
+button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+button.primary:hover { background: var(--primary-hover); }
+button.danger { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+button.danger:hover { background: #fee2e2; }
+button.sm { padding: 3px 8px; font-size: 12px; border-radius: 4px; }
+
+main { max-width: 1200px; margin: 24px auto; padding: 0 20px; }
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr auto;
+  gap: 16px;
+  margin-bottom: 20px;
+  align-items: end;
+}
+label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+input, select, textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 14px;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+/* Smart Helper Panel */
+.helper-panel {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+}
+.helper-title { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.chips-group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip-btn {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.chip-btn:hover { background: var(--accent-light); border-color: var(--primary); color: var(--primary); }
+
+.time-auto-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-left: auto;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Tabs */
+.tabs { display: flex; gap: 6px; border-bottom: 2px solid var(--border); margin-bottom: 16px; }
+.tab {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* Table */
+.table-wrap { overflow-x: auto; margin-bottom: 16px; }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th { font-size: 12px; font-weight: 600; color: var(--text-muted); padding: 10px 8px; background: #f8fafc; border-bottom: 1px solid var(--border); }
+td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+
+.time-cell { display: flex; align-items: center; gap: 4px; width: 130px; }
+.time-cell input { width: 100px; }
+.end-time-badge { font-size: 11px; color: var(--text-muted); background: #f1f5f9; padding: 2px 5px; border-radius: 4px; white-space: nowrap; }
+
+.duration-cell { display: flex; align-items: center; gap: 4px; width: 150px; }
+.dur-btn-group { display: flex; gap: 2px; }
+
+.actions-cell { display: flex; gap: 4px; width: 80px; justify-content: center; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15,23,42,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+.modal-content {
+  background: #fff; border-radius: 12px; width: 500px; max-width: 90%;
+  padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.modal-header h3 { margin: 0; font-size: 16px; }
+
+#printArea { display: none; }
+@media print {
+  @page { margin: 15mm; }
+  html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+  body > * { display: none !important; }
+  main { display: block !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
+  #printArea { display: block !important; }
+  .screen-editor { display: none !important; }
+  .print-day { display: block !important; break-after: page; page-break-after: always; }
+  .print-day:last-child { break-after: auto; page-break-after: auto; }
+  .print-title { font-size: 24px; margin: 0 0 5px; }
+  .print-date { color: #555; margin-bottom: 18px; }
+  .print-table { width: 100%; border-collapse: collapse; }
+  .print-table th, .print-table td { border: 1px solid #aaa; padding: 8px; }
 }
 </style>
 </head>
 <body>
-<header>
-  <h1>2日間研修 日程表エディター</h1>
+
+<header class="screen-editor">
+  <h1>📅 日程表エディター</h1>
   <div class="toolbar">
-    <button class="primary" onclick="addRow()">＋ 行を追加</button>
+    <button onclick="openTextImportModal()">📝 テキスト一括貼付</button>
     <button onclick="save()">💾 保存</button>
     <button onclick="load()">↻ 読み込み</button>
-    <button onclick="printSchedule()">🖨 印刷 / PDF</button>
-    <button onclick="resetData()" class="danger">初期化</button>
+    <button class="primary" onclick="printSchedule()">🖨 印刷 / PDF</button>
+    <button class="danger" onclick="resetData()">初期化</button>
   </div>
 </header>
 
 <main>
 <div class="card screen-editor">
-  <div class="meta">
-    <div><label>研修名</label><input id="title" value="新人研修"></div>
-    <div><label>開催日</label><input id="date" value="2026年○月○日〜○月○日"></div>
-    <div><label>会場</label><input id="venue" value="○○会議室"></div>
-  </div>
-  <div class="editor-only" style="display:flex;align-items:end;gap:10px;margin-bottom:18px;flex-wrap:wrap">
-    <div style="width:180px">
+  <div class="meta-grid">
+    <div>
+      <label>研修名</label>
+      <input id="title" value="新人研修">
+    </div>
+    <div>
+      <label>開催日</label>
+      <input id="date" value="2026年4月1日〜4月2日">
+    </div>
+    <div>
+      <label>会場</label>
+      <input id="venue" value="第1会議室">
+    </div>
+    <div>
       <label>日数</label>
-      <select id="dayCount" onchange="changeDayCount(this.value)">
+      <select id="dayCount" style="width: 80px;" onchange="changeDayCount(this.value)">
         <option value="1">1日</option>
         <option value="2" selected>2日</option>
         <option value="3">3日</option>
@@ -96,41 +228,79 @@ td input{min-width:80px}
         <option value="7">7日</option>
       </select>
     </div>
-    <div style="font-size:12px;color:#667085;padding-bottom:9px">
-      1〜7日から選択できます。日数を増減しても入力済みの日程はできるだけ保持します。
+  </div>
+
+  <div class="helper-panel">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+      <div class="helper-title">⚡️ ワンクリック入力ツール</div>
+      <label class="time-auto-toggle">
+        <input type="checkbox" id="autoRipple" checked onchange="toggleAutoRipple(this.checked)">
+        ⏱ 時間を自動計算・繰り下げ連動 (時間短縮)
+      </label>
+    </div>
+    <div class="chips-group">
+      <span style="font-size:12px; color:var(--text-muted)">クイック追加:</span>
+      <button class="chip-btn" onclick="quickAdd('受付・オリエンテーション', '30分', '人事部')">＋ 受付(30分)</button>
+      <button class="chip-btn" onclick="quickAdd('講義・研修', '60分', '講師')">＋ 講義(60分)</button>
+      <button class="chip-btn" onclick="quickAdd('休憩', '10分', '')">＋ 休憩(10分)</button>
+      <button class="chip-btn" onclick="quickAdd('昼休憩', '60分', '')">＋ 昼休憩(60分)</button>
+      <button class="chip-btn" onclick="quickAdd('演習・ワーク', '90分', '講師')">＋ 演習(90分)</button>
+      <button class="chip-btn" onclick="quickAdd('振り返り・質疑応答', '30分', '進行役')">＋ 振り返り(30分)</button>
+      <button class="chip-btn" onclick="quickAdd('終了', '', '')">＋ 終了</button>
     </div>
   </div>
 
   <div class="tabs" id="dayTabs"></div>
 
-  <div class="day-title">
-    <h2 id="dayHeading">1日目</h2>
-    <button onclick="addRow()">＋ この日の予定を追加</button>
-  </div>
-
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th class="time">時間</th>
-          <th class="duration">所要時間</th>
+          <th style="width: 140px;">開始時間 (終了)</th>
+          <th style="width: 180px;">所要時間</th>
           <th>研修内容</th>
-          <th class="kind">担当・講師</th>
-          <th class="actions">操作</th>
+          <th style="width: 160px;">担当・講師</th>
+          <th style="width: 80px; text-align:center">順序/操作</th>
         </tr>
       </thead>
       <tbody id="scheduleBody"></tbody>
     </table>
   </div>
-  <div class="footer">入力内容はブラウザの localStorage に保存できます。印刷時は2日分を自動的に整形します。</div>
+
+  <div style="display:flex; gap:10px; align-items:center;">
+    <button class="primary" onclick="addRow()">＋ 新しい予定を追加</button>
+    <button onclick="recalculateTimes()">⏱ 全体の時間を再計算</button>
+  </div>
 </div>
+
 <div id="printArea" class="print-only"></div>
 </main>
 
+<!-- Text Import Modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>📝 テキスト一括貼り付け解析</h3>
+      <button onclick="closeTextImportModal()">✕</button>
+    </div>
+    <p style="font-size:12px; color:var(--text-muted); margin-top:0;">
+      日程表テキスト（例: "09:00 受付 30分" や "10:00 会社説明 60分 人事"）を貼り付けると自動解析して表に展開します。
+    </p>
+    <textarea id="importText" rows="8" placeholder="09:00 受付 30分 人事部
+09:30 会社概要 60分 ○○部長
+10:30 休憩 10分
+10:40 業務基礎研修 80分 ○○主任"></textarea>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+      <button onclick="closeTextImportModal()">キャンセル</button>
+      <button class="primary" onclick="processTextImport()">一括取り込み</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const initial = {
- title:"新人研修", date:"2026年○月○日〜○月○日", venue:"○○会議室",
- days:[
+ title: "新人研修", date: "2026年4月1日〜4月2日", venue: "第1会議室",
+ days: [
   [
    {time:"09:00",duration:"30分",content:"受付・オリエンテーション",lecturer:"人事部"},
    {time:"09:30",duration:"60分",content:"会社概要・組織説明",lecturer:"○○部長"},
@@ -157,92 +327,277 @@ const initial = {
   ]
  ]
 };
-for(let i=2;i<7;i++) initial.days.push([]);
+for(let i=2; i<7; i++) initial.days.push([]);
+
 let data = structuredClone(initial);
 let currentDay = 0;
+let autoRipple = true;
 
 function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+
+function parseDurationMinutes(durStr) {
+ if (!durStr) return 0;
+ const match = String(durStr).match(/(\d+)/);
+ return match ? parseInt(match[1], 10) : 0;
+}
+
+function calcEndTime(timeStr, durStr) {
+ if (!timeStr) return "";
+ const [h, m] = timeStr.split(":").map(Number);
+ if (isNaN(h) || isNaN(m)) return "";
+ const mins = parseDurationMinutes(durStr);
+ if (mins <= 0) return "";
+ const total = h * 60 + m + mins;
+ const endH = Math.floor(total / 60) % 24;
+ const endM = total % 60;
+ return `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
+}
+
+function recalculateTimes() {
+ const list = data.days[currentDay];
+ if (!list || list.length === 0) return;
+ for (let i = 0; i < list.length - 1; i++) {
+   const current = list[i];
+   if (current.time && current.duration) {
+     const nextTime = calcEndTime(current.time, current.duration);
+     if (nextTime) {
+       list[i+1].time = nextTime;
+     }
+   }
+ }
+ render();
+}
+
+function toggleAutoRipple(val) {
+ autoRipple = val;
+}
+
 function render(){
- document.getElementById("title").value=data.title;
- document.getElementById("date").value=data.date;
- document.getElementById("venue").value=data.venue;
- document.getElementById("dayCount").value=data.days.length;
- document.getElementById("dayHeading").textContent=(currentDay+1)+"日目";
- const tabs=document.getElementById("dayTabs");
- tabs.innerHTML=data.days.map((_,i)=>`<button class="tab ${i===currentDay?"active":""}" data-day="${i}" onclick="switchDay(${i})">${i+1}日目</button>`).join("");
- const body=document.getElementById("scheduleBody");
- body.innerHTML="";
- if(!data.days[currentDay].length){
-   body.innerHTML='<tr><td colspan="5" class="empty">予定がありません。「行を追加」から登録してください。</td></tr>';
+ const pageTitle = data.title || "日程表";
+ document.title = pageTitle;
+ document.getElementById("title").value = data.title;
+ document.getElementById("date").value = data.date;
+ document.getElementById("venue").value = data.venue;
+ document.getElementById("dayCount").value = data.days.length;
+
+ const tabs = document.getElementById("dayTabs");
+ tabs.innerHTML = data.days.map((_,i) => `<button class="tab ${i===currentDay?"active":""}" onclick="switchDay(${i})">${i+1}日目</button>`).join("");
+
+ const body = document.getElementById("scheduleBody");
+ body.innerHTML = "";
+ if (!data.days[currentDay] || !data.days[currentDay].length) {
+   body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted)">予定がありません。「＋ 新しい予定を追加」またはワンクリックタグから追加してください。</td></tr>';
    return;
  }
- data.days[currentDay].forEach((r,i)=>{
-  const tr=document.createElement("tr");
-  tr.innerHTML=`
-   <td><input value="${esc(r.time)}" oninput="update(${i},'time',this.value)"></td>
-   <td><input value="${esc(r.duration)}" oninput="update(${i},'duration',this.value)"></td>
-   <td><textarea oninput="update(${i},'content',this.value)">${esc(r.content)}</textarea></td>
-   <td><input value="${esc(r.lecturer)}" oninput="update(${i},'lecturer',this.value)"></td>
-   <td><button class="danger" onclick="deleteRow(${i})">削除</button></td>`;
+
+ data.days[currentDay].forEach((r, i) => {
+  const endTime = calcEndTime(r.time, r.duration);
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+   <td>
+     <div class="time-cell">
+       <input value="${esc(r.time)}" placeholder="09:00" onchange="updateRow(${i},'time',this.value)">
+       ${endTime ? `<span class="end-time-badge">~${endTime}</span>` : ''}
+     </div>
+   </td>
+   <td>
+     <div class="duration-cell">
+       <input value="${esc(r.duration)}" placeholder="30分" style="width:70px;" onchange="updateRow(${i},'duration',this.value)">
+       <div class="dur-btn-group">
+         <button class="sm" onclick="addDuration(${i}, 10)">+10m</button>
+         <button class="sm" onclick="addDuration(${i}, 30)">+30m</button>
+       </div>
+     </div>
+   </td>
+   <td><input value="${esc(r.content)}" placeholder="研修・活動内容" oninput="updateRow(${i},'content',this.value)"></td>
+   <td><input value="${esc(r.lecturer)}" placeholder="担当・講師" oninput="updateRow(${i},'lecturer',this.value)"></td>
+   <td>
+     <div class="actions-cell">
+       <button class="sm" onclick="moveRow(${i}, -1)">▲</button>
+       <button class="sm" onclick="moveRow(${i}, 1)">▼</button>
+       <button class="sm danger" onclick="deleteRow(${i})">✕</button>
+     </div>
+   </td>`;
   body.appendChild(tr);
  });
 }
-function update(i,k,v){data.days[currentDay][i][k]=v}
-function changeDayCount(value){
- const count=Math.max(1,Math.min(7,Number(value)));
- while(data.days.length<count) data.days.push([]);
- data.days=data.days.slice(0,count);
- if(currentDay>=count) currentDay=count-1;
+
+function updateRow(i, field, value) {
+ const row = data.days[currentDay][i];
+ if (!row) return;
+ row[field] = value;
+
+ if (autoRipple && (field === 'time' || field === 'duration')) {
+   recalculateTimes();
+ } else {
+   render();
+ }
+}
+
+function addDuration(i, mins) {
+ const row = data.days[currentDay][i];
+ if (!row) return;
+ const currentMins = parseDurationMinutes(row.duration);
+ row.duration = `${currentMins + mins}分`;
+ if (autoRipple) recalculateTimes();
+ else render();
+}
+
+function moveRow(i, dir) {
+ const list = data.days[currentDay];
+ const targetIndex = i + dir;
+ if (targetIndex < 0 || targetIndex >= list.length) return;
+ const [moved] = list.splice(i, 1);
+ list.splice(targetIndex, 0, moved);
+ if (autoRipple) recalculateTimes();
+ else render();
+}
+
+function changeDayCount(val) {
+ const count = Math.max(1, Math.min(7, Number(val)));
+ while(data.days.length < count) data.days.push([]);
+ data.days = data.days.slice(0, count);
+ if(currentDay >= count) currentDay = count - 1;
  render();
 }
-function switchDay(day){currentDay=day;render()}
-function addRow(){
- data.days[currentDay].push({time:"",duration:"",content:"",lecturer:""});
+
+function switchDay(day) { currentDay = day; render(); }
+
+function addRow(preset = {}) {
+ const list = data.days[currentDay];
+ let nextTime = "09:00";
+ if (list.length > 0) {
+   const last = list[list.length - 1];
+   const calculated = calcEndTime(last.time, last.duration);
+   if (calculated) nextTime = calculated;
+   else if (last.time) nextTime = last.time;
+ }
+ list.push({
+   time: preset.time !== undefined ? preset.time : nextTime,
+   duration: preset.duration || "",
+   content: preset.content || "",
+   lecturer: preset.lecturer || ""
+ });
  render();
- const inputs=document.querySelectorAll("#scheduleBody input");
- inputs[inputs.length-2]?.focus();
 }
-function deleteRow(i){
- if(confirm("この行を削除しますか？")){data.days[currentDay].splice(i,1);render()}
+
+function quickAdd(content, duration, lecturer) {
+ addRow({ duration, content, lecturer });
 }
+
+function deleteRow(i) {
+ data.days[currentDay].splice(i, 1);
+ if (autoRipple) recalculateTimes();
+ else render();
+}
+
+function openTextImportModal() {
+ document.getElementById("importModal").classList.add("open");
+}
+function closeTextImportModal() {
+ document.getElementById("importModal").classList.remove("open");
+}
+
+function processTextImport() {
+ const text = document.getElementById("importText").value.trim();
+ if (!text) return;
+ const lines = text.split("\n");
+ const parsedRows = [];
+
+ lines.forEach(line => {
+   line = line.trim();
+   if (!line) return;
+
+   // Match pattern like "09:00 研修内容 30分 講師" or "受付 30分"
+   const timeMatch = line.match(/^(\d{1,2}:\d{2})/);
+   let time = "";
+   let rest = line;
+   if (timeMatch) {
+     time = timeMatch[1];
+     rest = line.replace(timeMatch[1], "").trim();
+   }
+
+   const durMatch = rest.match(/(\d+)\s*(分|時間|h|m|min)?/i);
+   let duration = "";
+   if (durMatch) {
+     const num = parseInt(durMatch[1], 10);
+     const unit = durMatch[2] ? durMatch[2].toLowerCase() : "分";
+     duration = (unit === "時間" || unit === "h") ? `${num * 60}分` : `${num}分`;
+     rest = rest.replace(durMatch[0], "").trim();
+   }
+
+   const parts = rest.split(/\s+/);
+   const content = parts[0] || "活動";
+   const lecturer = parts.slice(1).join(" ") || "";
+
+   parsedRows.push({ time, duration, content, lecturer });
+ });
+
+ if (parsedRows.length > 0) {
+   data.days[currentDay] = parsedRows;
+   if (autoRipple) recalculateTimes();
+   else render();
+   closeTextImportModal();
+ }
+}
+
 function save(){
- data.title=document.getElementById("title").value;
- data.date=document.getElementById("date").value;
- data.venue=document.getElementById("venue").value;
- localStorage.setItem("training-schedule-2days",JSON.stringify(data));
+ data.title = document.getElementById("title").value;
+ data.date = document.getElementById("date").value;
+ data.venue = document.getElementById("venue").value;
+ localStorage.setItem("training-schedule-2days", JSON.stringify(data));
  alert("保存しました。");
 }
+
 function load(){
- const raw=localStorage.getItem("training-schedule-2days");
+ const raw = localStorage.getItem("training-schedule-2days");
  if(raw){
-   data=JSON.parse(raw);
-   if(!Array.isArray(data.days)) data.days=[[]];
-   data.days=data.days.slice(0,7);
+   data = JSON.parse(raw);
+   if(!Array.isArray(data.days)) data.days = [[]];
+   data.days = data.days.slice(0,7);
    render();
-   alert("読み込みました。")
+   alert("読み込みました。");
+ } else {
+   alert("保存データがありません。");
  }
- else alert("保存データがありません。");
 }
+
 function resetData(){
- if(confirm("入力内容を初期状態に戻しますか？")){data=structuredClone(initial);currentDay=0;render()}
+ if(confirm("入力内容を初期状態に戻しますか？")){
+   data = structuredClone(initial);
+   currentDay = 0;
+   render();
+ }
 }
+
 function printSchedule(){
- data.title=document.getElementById("title").value;
- data.date=document.getElementById("date").value;
- data.venue=document.getElementById("venue").value;
- const area=document.getElementById("printArea");
- area.innerHTML=data.days.map((day,di)=>`
+ data.title = document.getElementById("title").value;
+ data.date = document.getElementById("date").value;
+ data.venue = document.getElementById("venue").value;
+ document.title = data.title || "日程表";
+
+ const area = document.getElementById("printArea");
+ area.innerHTML = data.days.map((day, di) => `
   <section class="print-day">
    <h1 class="print-title">${esc(data.title)} — ${di+1}日目</h1>
    <div class="print-date">${esc(data.date)}　／　${esc(data.venue)}</div>
    <table class="print-table">
     <thead><tr><th>時間</th><th>所要時間</th><th>研修内容</th><th>担当・講師</th></tr></thead>
-    <tbody>${day.map(r=>`<tr><td>${esc(r.time)}</td><td>${esc(r.duration)}</td><td>${esc(r.content)}</td><td>${esc(r.lecturer)}</td></tr>`).join("")}</tbody>
+    <tbody>${day.map(r => `<tr><td>${esc(r.time)}</td><td>${esc(r.duration)}</td><td>${esc(r.content)}</td><td>${esc(r.lecturer)}</td></tr>`).join("")}</tbody>
    </table>
   </section>`).join("");
  window.print();
 }
-["title","date","venue"].forEach(id=>document.getElementById(id).addEventListener("input",e=>data[{title:"title",date:"date",venue:"venue"}[id]]=e.target.value));
+
+["title", "date", "venue"].forEach(id => {
+  document.getElementById(id).addEventListener("input", e => {
+    data[{title:"title", date:"date", venue:"venue"}[id]] = e.target.value;
+    if(id === "title") {
+      document.title = e.target.value || "日程表";
+    }
+  });
+});
+
 render();
 </script>
 </body>
