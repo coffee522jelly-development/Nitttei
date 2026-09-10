@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>日程表</title>
+
+<!-- DAUB.css & Flatpickr Range Calendar -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daub.css@0.1.0/daub.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+
 <style>
 :root {
   --primary: #2563eb;
@@ -150,7 +157,7 @@ td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: m
 .time-cell input { width: 100px; }
 .end-time-badge { font-size: 11px; color: var(--text-muted); background: #f1f5f9; padding: 2px 5px; border-radius: 4px; white-space: nowrap; }
 
-.duration-cell { display: flex; align-items: center; gap: 4px; width: 150px; }
+.duration-cell { display: flex; align-items: center; gap: 4px; width: 170px; }
 .dur-btn-group { display: flex; gap: 2px; }
 
 .actions-cell { display: flex; gap: 4px; width: 80px; justify-content: center; }
@@ -190,6 +197,34 @@ td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: m
 </head>
 <body>
 
+<!-- Single Global Datalist for Duration Options (5m - 120m) -->
+<datalist id="durationOptions">
+  <option value="5分">
+  <option value="10分">
+  <option value="15分">
+  <option value="20分">
+  <option value="25分">
+  <option value="30分">
+  <option value="35分">
+  <option value="40分">
+  <option value="45分">
+  <option value="50分">
+  <option value="55分">
+  <option value="60分">
+  <option value="65分">
+  <option value="70分">
+  <option value="75分">
+  <option value="80分">
+  <option value="85分">
+  <option value="90分">
+  <option value="95分">
+  <option value="100分">
+  <option value="105分">
+  <option value="110分">
+  <option value="115分">
+  <option value="120分">
+</datalist>
+
 <header class="screen-editor">
   <h1>📅 日程表エディター</h1>
   <div class="toolbar">
@@ -209,8 +244,8 @@ td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: m
       <input id="title" value="新人研修">
     </div>
     <div>
-      <label>開催日</label>
-      <input id="date" value="2026年4月1日〜4月2日">
+      <label>開催日 (カレンダーから範囲指定)</label>
+      <input id="date" placeholder="日付範囲を選択">
     </div>
     <div>
       <label>会場</label>
@@ -299,7 +334,7 @@ td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: m
 
 <script>
 const initial = {
- title: "新人研修", date: "2026年4月1日〜4月2日", venue: "第1会議室",
+ title: "新人研修", date: "2026-04-01 to 2026-04-02", venue: "第1会議室",
  days: [
   [
    {time:"09:00",duration:"30分",content:"受付・オリエンテーション",lecturer:"人事部"},
@@ -332,6 +367,7 @@ for(let i=2; i<7; i++) initial.days.push([]);
 let data = structuredClone(initial);
 let currentDay = 0;
 let autoRipple = true;
+let datePickerInstance = null;
 
 function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 
@@ -376,9 +412,12 @@ function render(){
  const pageTitle = data.title || "日程表";
  document.title = pageTitle;
  document.getElementById("title").value = data.title;
- document.getElementById("date").value = data.date;
  document.getElementById("venue").value = data.venue;
  document.getElementById("dayCount").value = data.days.length;
+
+ if (datePickerInstance) {
+   datePickerInstance.setDate(data.date, false);
+ }
 
  const tabs = document.getElementById("dayTabs");
  tabs.innerHTML = data.days.map((_,i) => `<button class="tab ${i===currentDay?"active":""}" onclick="switchDay(${i})">${i+1}日目</button>`).join("");
@@ -403,9 +442,6 @@ function render(){
    <td>
      <div class="duration-cell">
        <input list="durationOptions" value="${esc(r.duration)}" placeholder="30分" style="width:90px;" onchange="updateRow(${i},'duration',this.value)" oninput="updateRow(${i},'duration',this.value)">
-       <datalist id="durationOptions">
-         ${Array.from({length: 24}, (_, index) => (index + 1) * 5).map(m => `<option value="${m}分">`).join("")}
-       </datalist>
        <div class="dur-btn-group">
          <button class="sm" onclick="addDuration(${i}, 10)">+10m</button>
          <button class="sm" onclick="addDuration(${i}, 30)">+30m</button>
@@ -511,7 +547,6 @@ function processTextImport() {
    line = line.trim();
    if (!line) return;
 
-   // Match pattern like "09:00 研修内容 30分 講師" or "受付 30分"
    const timeMatch = line.match(/^(\d{1,2}:\d{2})/);
    let time = "";
    let rest = line;
@@ -592,16 +627,29 @@ function printSchedule(){
  window.print();
 }
 
-["title", "date", "venue"].forEach(id => {
-  document.getElementById(id).addEventListener("input", e => {
-    data[{title:"title", date:"date", venue:"venue"}[id]] = e.target.value;
-    if(id === "title") {
-      document.title = e.target.value || "日程表";
+// Initialize Flatpickr Date Range Calendar
+document.addEventListener("DOMContentLoaded", () => {
+  datePickerInstance = flatpickr("#date", {
+    mode: "range",
+    locale: "ja",
+    dateFormat: "Y-m-d",
+    defaultDate: data.date,
+    onChange: (selectedDates, dateStr) => {
+      data.date = dateStr;
     }
   });
-});
 
-render();
+  ["title", "venue"].forEach(id => {
+    document.getElementById(id).addEventListener("input", e => {
+      data[{title:"title", venue:"venue"}[id]] = e.target.value;
+      if(id === "title") {
+        document.title = e.target.value || "日程表";
+      }
+    });
+  });
+
+  render();
+});
 </script>
 </body>
 </html>
