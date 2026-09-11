@@ -336,8 +336,8 @@ td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: m
     <div style="margin-bottom:20px;">
       <h4 style="margin:8px 0; font-size:14px;">📍 会場マスター</h4>
       <div style="display:flex; gap:6px; margin-bottom:8px;">
-        <input id="newVenueInput" placeholder="例: オンラインZoomルーム1">
-        <button class="primary sm" onclick="addMasterItem('venue')">追加</button>
+        <input id="newVenueInput" placeholder="例: オンラインZoomルーム1" onkeydown="if(event.key==='Enter') addMasterItem('venue')">
+        <button class="primary sm" onclick="addMasterItem('venue')">＋</button>
       </div>
       <div id="venueMasterList"></div>
     </div>
@@ -345,8 +345,8 @@ td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: m
     <div>
       <h4 style="margin:8px 0; font-size:14px;">👤 担当・講師マスター</h4>
       <div style="display:flex; gap:6px; margin-bottom:8px;">
-        <input id="newLecturerInput" placeholder="例: DX推進部 ○○">
-        <button class="primary sm" onclick="addMasterItem('lecturer')">追加</button>
+        <input id="newLecturerInput" placeholder="例: DX推進部 ○○" onkeydown="if(event.key==='Enter') addMasterItem('lecturer')">
+        <button class="primary sm" onclick="addMasterItem('lecturer')">＋</button>
       </div>
       <div id="lecturerMasterList"></div>
     </div>
